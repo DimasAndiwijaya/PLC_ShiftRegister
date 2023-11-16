@@ -1,0 +1,56 @@
+======================================== LOCAL VARIABLE =====================================================
+FUNCTION_BLOCK Alarm_Event_History
+
+VAR_INPUT
+	bError			: BOOL;
+	bErrorID		: UINT;
+	strErrorMsg		: STRING;
+	TimeStop		: STRING;	
+	bResetBuffer	: BOOL;
+END_VAR
+VAR_OUTPUT
+	bEnable_Out		: BOOL;
+END_VAR
+VAR
+	EmptyArray 		: INT ;
+	temp 			: INT ;
+	leght 			: INT := 100;
+	rTrig_Error 	: R_TRIG;
+	j				: INT;
+END_VAR
+VAR_IN_OUT
+	dtErrorHistory	: ARRAY [0..100] OF stErrorData;
+END_VAR
+=============================================================================================================
+
+
+rTrig_Error(clk:= bError);
+bEnable_Out := NOT bError;
+	IF  rTrig_Error.Q THEN 
+		
+		dtErrorHistory[0].Status	:= 1;
+		dtErrorHistory[0].ErrorID	:= bErrorID;
+		dtErrorHistory[0].ErrorMsg	:= strErrorMsg;
+		dtErrorHistory[0].TimeStop	:= TimeStop;
+		temp := leght;
+		FOR EmptyArray := 1 TO leght BY 1 DO 
+			dtErrorHistory[temp].Status		:= dtErrorHistory[temp-1].Status ;
+			dtErrorHistory[temp].ErrorID	:= dtErrorHistory[temp-1].ErrorID ;
+			dtErrorHistory[temp].ErrorMsg	:= dtErrorHistory[temp-1].ErrorMsg ;
+			dtErrorHistory[temp].TimeStop	:= dtErrorHistory[temp-1].TimeStop ;
+			temp := temp-1;
+		END_FOR
+		dtErrorHistory[0].Status	:= 0;
+		dtErrorHistory[0].ErrorID	:= 0;
+		dtErrorHistory[0].ErrorMsg	:= '';
+		dtErrorHistory[0].TimeStop	:= '';
+ 	END_IF 
+	
+	IF bResetBuffer THEN
+		FOR j := 1  TO leght BY 1 DO 
+			dtErrorHistory[j].Status	:= 0;
+			dtErrorHistory[j].ErrorID	:= 0;
+			dtErrorHistory[j].ErrorMsg	:= '';
+			dtErrorHistory[j].TimeStop	:= '';
+		END_FOR
+	END_IF
